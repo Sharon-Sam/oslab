@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>os lab</title>
+</head>
+<body>
+    <p>
+        ONE THREAD
+        #include<stdio.h>
+            #include<pthread.h>
+            void * add(void * arg)
+            {
+                int a,b,s;
+                printf("Enter two numbers:");
+                scanf("%d%d",&a,&b);
+                s=a+b;
+                printf("Sum=%d",s);
+            }
+            int main()
+            {
+                pthread_t id;
+                int r;
+                r=pthread_create(&id,NULL,add,NULL);
+                if(r==0)
+                {
+                    printf("\nThread created successfully\n");
+                }
+                else
+                {
+                    printf("\nFailed to create thread\n");
+                }
+                pthread_join(id,NULL);
+            }
+
+            2 THREAD
+            #include<stdio.h>
+                #include<pthread.h>
+                void * add(void * arg)
+                {
+                    int * arr;
+                    arr=arg;
+                    int n1,n2,s;
+                    n1=arr[0];
+                    n2=arr[1];
+                    s=n1+n2;
+                    printf("Sum=%d+%d=%d\n",n1,n2,s);
+                }
+                int main()
+                {
+                    int arr_1[2],arr_2[2];
+                    pthread_t t1,t2;
+                    printf("Enter the first number of t1\n");
+                    scanf("%d",&arr_1[0]);
+                    printf("Enter the second number of t1\n");
+                    scanf("%d",&arr_1[1]);
+                    printf("Enter the first number of t2\n");
+                    scanf("%d",&arr_2[0]);
+                    printf("Enter the second number of t2\n");
+                    scanf("%d",&arr_2[1]);
+                    pthread_create(&t1,NULL,add,arr_1);
+                    pthread_create(&t2,NULL,add,arr_2);
+                    pthread_exit(NULL);
+                }
+
+                [1:55 pm, 25/09/2021] Lolan: #include<stdio.h>
+                    #include<unistd.h>
+                    int main()
+                    {
+                        int i,n,f;
+                        printf("Enter the limit:");
+                        scanf("%d",&n);
+                        f=fork();
+                        if(f>0)
+                        {
+                            wait();
+                            printf("\nParent process\n");
+                            for(i=1;i<=n;i++)
+                            {
+                                if(i%2!=0)
+                                {
+                                    printf("%d\t",i);
+                                }
+                            }
+                            printf("\nMy process id=%d",getpid());
+                            printf("\nMy child process id=%d",f);
+                        }
+                        else
+                        {
+                            printf("\nChild process\n");
+                            for(i=1;i<=n;i++)
+                            {
+                                if(i%2==0)
+                                {
+                                    printf("%d\t",i);
+                                }
+                            }
+                            printf("\nMy process id=%d",getpid());
+                            printf("\nMy parent process id=%d",getppid());
+                        }
+                        return 0;
+                    }
+                    [1:55 pm, 25/09/2021] Lolan: #include<stdio.h>
+                    #include<pthread.h>
+                    void * add(void * arg)
+                    {
+                        int * arr;
+                        arr=arg;
+                        int n1,n2,s;
+                        n1=arr[0];
+                        n2=arr[1];
+                        s=n1+n2;
+                        printf("Sum=%d+%d=%d\n",n1,n2,s);
+                    }
+                    int main()
+                    {
+                        int arr_1[2],arr_2[2];
+                        pthread_t t1,t2;
+                        printf("Enter the first number of t1\n");
+                        scanf("%d",&arr_1[0]);
+                        printf("Enter the second number of t1\n");
+                        scanf("%d",&arr_1[1]);
+                        printf("Enter the first number of t2\n");
+                        scanf("%d",&arr_2[0]);
+                        printf("Enter the second number of t2\n");
+                        scanf("%d",&arr_2[1]);
+                        pthread_create(&t1,NULL,add,arr_1);
+                        pthread_create(&t2,NULL,add,arr_2);
+                        pthread_exit(NULL);
+                    }
+
+
+                    #include<stdio.h>
+                        #include<stdlib.h>
+                         
+                        int mutex=1,full=0,empty,x=0;
+                         
+                        int main()
+                        {
+                            int n;
+                            printf("Enter the size: ");
+                            scanf("%d",&n);
+                            empty=n;
+                            void producer();
+                            void consumer();
+                            int wait(int);
+                            int signal(int);
+                            printf("\n1.Producer\n2.Consumer\n3.Exit");
+                            while(1)
+                            {
+                                printf("\nEnter your choice:");
+                                scanf("%d",&n);
+                                switch(n)
+                                {
+                                    case 1:    if((mutex==1)&&(empty!=0))
+                                                producer();
+                                            else
+                                                printf("Buffer is full!!");
+                                            break;
+                                    case 2:    if((mutex==1)&&(full!=0))
+                                                consumer();
+                                            else
+                                                printf("Buffer is empty!!");
+                                            break;
+                                    case 3:
+                                            exit(0);
+                                            break;
+                                }
+                            }
+                           
+                            return 0;
+                        }
+                         
+                        int wait(int s)
+                        {
+                            return (--s);
+                        }
+                         
+                        int signal(int s)
+                        {
+                            return(++s);
+                        }
+                         
+                        void producer()
+                        {
+                            mutex=wait(mutex);
+                            full=signal(full);
+                            empty=wait(empty);
+                            x++;
+                            printf("\nProducer produces the item %d",x);
+                            mutex=signal(mutex);
+                        }
+                         
+                        void consumer()
+                        {
+                            mutex=wait(mutex);
+                            full=wait(full);
+                            empty=signal(empty);
+                            printf("\nConsumer consumes item %d",x);
+                            x--;
+                            mutex=signal(mutex);
+                        }
+
+                        #include<stdio.h>
+
+                            int main(){
+                            
+                                int BT[10]={0},AT[10]={0},TAT[10]={0},WT[10]={0},CT[10]={0};
+                                int n,sum=0;
+                                float total_TAT=0,total_WT=0;
+                                
+                                printf("FIRST COME FIRST SERVE\n");
+                                printf("----------------------");
+                            
+                                printf("\n\nEnter number of processes :");
+                                scanf("%d",&n);
+                            
+                                printf("\nEnter arrival time and burst time for each process :\n\n");
+                            
+                                for(int i=0;i<n;i++)
+                                {
+                            
+                                    printf("Arrival time of process[%d] :",i);
+                                    scanf("%d",&AT[i]);
+                                    
+                                    printf("Burst time of process[%d] :",i);
+                                    scanf("%d",&BT[i]);
+                                    
+                                    printf("\n");
+                                }
+                            
+                                for(int j=0;j<n;j++)
+                                {
+                                    sum=sum+BT[j];
+                                    CT[j]=CT[j]+sum;
+                                }
+                            
+                                for(int k=0;k<n;k++)
+                                {
+                                    TAT[k]=CT[k]-AT[k];
+                                    total_TAT=total_TAT+TAT[k];
+                                }
+                            
+                                
+                                for(int k=0;k<n;k++)
+                                {
+                                    WT[k]=TAT[k]-BT[k];
+                                    total_WT=total_WT+WT[k];
+                                }
+                                
+                                printf("Process\t AT\t BT\t CT\t TAT\t WT\t\n\n");
+                                
+                                for(int i=0;i<n;i++)
+                                {
+                                    printf("P%d\t %d\t %d\t %d\t %d\t %d\n",i,AT[i],BT[i],CT[i],TAT[i],WT[i]);
+                                }
+                                    
+                                printf("\nAverage Turnaround Time = %f\n",total_TAT/n);
+                                printf("\nAverage WT = %f\n\n",total_WT/n);
+                                
+                                return 0;
+                            }
+
+                            #include<stdio.h>
+
+                                int main()
+                                {
+                                    int AT[50],BT[50],CT[50],TAT[50],WT[50],P[50],temp[50];
+                                    int i,j,n,pos,time_quantum,total=0,x,count=0;
+                                    float avg_TAT=0.0,avg_WT=0.0;
+                                    
+                                    printf("ROUND ROBIN\n");
+                                    printf("-----------");
+                                    
+                                    printf("\n\nEnter number of processes :");
+                                    scanf("%d",&n);
+                                    
+                                    printf("\nEnter arrival time and burst time for each process :\n\n");
+                                    
+                                    x=n;
+                                    
+                                    for(i=0;i<n;i++)
+                                    {
+                                        printf("Enter arrival time of process [%d] :",i);
+                                        scanf("%d",&AT[i]);
+                                        
+                                        printf("Enter burst time of process [%d] :",i);
+                                        scanf("%d",&BT[i]);
+                                        
+                                        temp[i]=BT[i];
+                                        printf("\n");
+                                    }
+                                    
+                                    for(i=0;i<n;i++)
+                                    {
+                                        for(j=i+1;j<n;j++)
+                                        {
+                                            if(AT[i]>AT[j])
+                                            {          
+                                                pos =AT[i];
+                                                AT[i]=AT[j];
+                                                AT[j]=pos;
+                                                pos =BT[i];
+                                                BT[i]=BT[j];
+                                                BT[j]=pos;
+                                                pos =P[i];
+                                                P[i]=P[j];
+                                                P[j]=pos;
+                                            }
+                                        }
+                                    }
+                                    
+                                    printf("\nEnter Time Quantum:");
+                                    scanf("%d", &time_quantum);
+                                    
+                                    printf("\nProcess\t\tAT\tBT\tCT\tTAT\tWT\n");
+                                    
+                                    while(x!= 0)
+                                    {
+                                        
+                                        if(temp[i] <= time_quantum && temp[i] > 0)
+                                        {
+                                            total = total + temp[i];
+                                            temp[i] = 0;
+                                            count = 1;
+                                        }
+                                        
+                                        else if(temp[i] > 0)
+                                        {
+                                            temp[i] = temp[i] - time_quantum;
+                                            total = total + time_quantum;
+                                        }
+                                        
+                                        if(temp[i] == 0 && count == 1)
+                                        {
+                                            x--;
+                                            CT[i]=total;
+                                            
+                                            printf("P%d\t\t%d\t%d\t%d\t%d\t%d\n",i,AT[i],BT[i],CT[i],CT[i]-AT[i],CT[i]-AT[i]-BT[i]);
+                                            
+                                            avg_TAT=avg_TAT+total-AT[i];
+                                            avg_WT=avg_WT+total-AT[i]-BT[i];
+                                            
+                                            count = 0;
+                                        }
+                                        
+                                        if(i == n - 1)
+                                        {
+                                            i = 0;
+                                        }
+                                        
+                                        else if(AT[i + 1] <= total)
+                                        {
+                                            i++;
+                                        }
+                                        
+                                        else
+                                        {
+                                            i = 0;
+                                        }
+                                    }
+                                    
+                                    avg_TAT=avg_TAT/n;
+                                    avg_WT=avg_WT/n;
+                                    
+                                    printf("\nAverge Turnaround Time= %f\n", avg_TAT);
+                                    printf("\nAverage Waiting Time= %f\n", avg_WT);
+                                    
+                                    return 0;
+                                    
+                                }
+
+                                #include<stdio.h>
+
+                                    int main()
+                                    {
+                                        
+                                        int AT[100],BT[100],P[100],CT[100],TAT[100],WT[100];
+                                        int n,i,j,temp,current_time=0,start_time,completed=0,count;
+                                        float avg_TAT=0.0,avg_WT=0.0;
+                                        
+                                        printf("NON PREEMPTIVE SHORTEST JOB FIRST\n");
+                                        printf("---------------------------------");
+                                        
+                                        printf("\n\nEnter number of processes: ");
+                                        scanf("%d",&n);
+                                        
+                                        printf("\nEnter arrival time and burst time for each process :\n\n");
+                                        
+                                        for(i=0;i<n;i++)
+                                        {
+                                            printf("\nEnter arrival time of process [%d]: ",i);
+                                            scanf("%d",&AT[i]);
+                                    
+                                            printf("Enter burst time of process [%d]: ",i);
+                                            scanf("%d",&BT[i]);
+                                            
+                                            P[i]=i;
+                                            printf("\n");
+                                        }
+                                        
+                                        for(i=0;i<n-1;i++)
+                                        {
+                                            for(j=i+1;j<n;j++)
+                                            {
+                                                if(AT[i]>AT[j])
+                                                {
+                                                    temp=AT[i];
+                                                    AT[i]=AT[j];
+                                                    AT[j]=temp;
+                                                    temp=BT[i];
+                                                    BT[i]=BT[j];
+                                                    BT[j]=temp;
+                                                    temp=P[i];
+                                                    P[i]=P[j];
+                                                    P[j]=temp;
+                                                }
+                                            }
+                                        }
+                                        
+                                        printf("Process\tAT\tBT\tCT\tTAT\tWT\t\n\n");
+                                        
+                                        while(completed<n)
+                                        {
+                                            
+                                            count=0;
+                                            
+                                            for(i=completed;i<n;i++)
+                                            {
+                                                
+                                                if(AT[i]<=current_time)
+                                                {
+                                                    count++;
+                                                }
+                                                else
+                                                {
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            if(count>1)
+                                            {
+                                                for(i=completed;i<(completed+count-1);i++)
+                                                {
+                                                    for(j=i+1;j<completed+count;j++)
+                                                    {
+                                                        if(BT[i]>BT[j])
+                                                        {
+                                                            temp=AT[i];
+                                                            AT[i]=AT[j];
+                                                            AT[j]=temp;
+                                                            temp=BT[i];
+                                                            BT[i]=BT[j];
+                                                            BT[j]=temp;
+                                                            temp=P[i];
+                                                            P[i]=P[j];
+                                                            P[j]=temp;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            start_time=current_time;
+                                            CT[completed]=start_time+BT[completed];
+                                            TAT[completed]=CT[completed]-AT[completed];
+                                            WT[completed]=TAT[completed]-BT[completed];
+                                            current_time=CT[completed];
+                                            
+                                            printf("P%d\t%d\t%d\t%d\t%d\t%d\n",P[completed],AT[completed],BT[completed],CT[completed],TAT[completed],WT[completed]);
+                                    //printf("\n");
+                                    
+                                            avg_TAT=avg_TAT+TAT[completed];
+                                            avg_WT=avg_WT+WT[completed];
+                                            completed++;
+                                        }
+                                        avg_TAT=avg_TAT/n;
+                                        avg_WT=avg_WT/n;
+                                        
+                                        printf("\nAverage Turn around time= %f\n",avg_TAT);
+                                        printf("\nAverage Waiting time= %f\n",avg_WT);
+                                        
+                                        return 0;
+                                        
+                                    }
+
+
+                                    #include <stdio.h>
+
+                                        int main()
+                                        {
+                                            int AT[100],BT[100],PT[100],P[100],CT[100],TAT[100],WT[100];
+                                            int n,i,j,temp,current_time=0,start_time,completed=0,count;
+                                            float avg_TAT=0.0,avg_WT=0.0;
+                                            
+                                            printf("NON PREEMPTIVE PRIORITY SCHEDULING\n");
+                                            printf("----------------------------------");
+                                            
+                                            printf("\n\nEnter number of processes: ");
+                                            scanf("%d",&n);
+                                            
+                                            printf("\nEnter arrival time and burst time for each process :\n\n");
+                                            
+                                            for(i=0;i<n;i++)
+                                            {
+                                                printf("\nEnter arrival time of process [%d]: ",i+1);
+                                                scanf("%d",&AT[i]);
+                                                
+                                                printf("Enter burst time of process [%d]: ",i+1);
+                                                scanf("%d",&BT[i]);
+                                                
+                                                printf("Enter priority of process [%d]: ",i+1);
+                                                scanf("%d",&PT[i]);
+                                                
+                                                P[i]=i;
+                                                printf("\n");
+                                            }
+                                            
+                                            for(i=0;i<n-1;i++)
+                                            {
+                                                for(j=i+1;j<n;j++)
+                                                {
+                                                    if(AT[i]>AT[j])
+                                                    {
+                                                        temp=AT[i];
+                                                        AT[i]=AT[j];
+                                                        AT[j]=temp;
+                                                        temp=BT[i];
+                                                        BT[i]=BT[j];
+                                                        BT[j]=temp;
+                                                        temp=PT[i];
+                                                        PT[i]=PT[j];
+                                                        PT[j]=temp;
+                                                        temp=P[i];
+                                                        P[i]=P[j];
+                                                        P[j]=temp;
+                                                    }
+                                                }
+                                            }
+                                            
+                                            printf("Process\tAT\tBT\tPriority\tCT\tTAT\tWT\t\n\n");
+                                            
+                                            while(completed<n)
+                                            {
+                                                
+                                                count=0;
+                                                
+                                                for(i=completed;i<n;i++)
+                                                {
+                                                    if(AT[i]<=current_time)
+                                                    {
+                                                        count++;
+                                                    }
+                                                    else
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+                                                
+                                                if(count>1)
+                                                {
+                                                    for(i=completed;i<(completed+count-1);i++)
+                                                    {
+                                                        for(j=i+1;j<completed+count;j++)
+                                                        {
+                                                            if(PT[i]>PT[j])
+                                                            {
+                                                                temp=PT[i];
+                                                                PT[i]=PT[j];
+                                                                PT[j]=temp;
+                                                                temp=AT[i];
+                                                                AT[i]=AT[j];
+                                                                AT[j]=temp;
+                                                                temp=BT[i];
+                                                                BT[i]=BT[j];
+                                                                BT[j]=temp;
+                                                                temp=P[i];
+                                                                P[i]=P[j];
+                                                                P[j]=temp;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                
+                                                start_time=current_time;
+                                                CT[completed]=start_time+BT[completed];
+                                                TAT[completed]=CT[completed]-AT[completed];
+                                                WT[completed]=TAT[completed]-BT[completed];
+                                                current_time=CT[completed];
+                                                
+                                                printf("P%d\t%d\t%d\t%d\t\t%d\t%d\t%d\n ",P[completed]+1,AT[completed],BT[completed],PT[completed],CT[completed],TAT[completed],WT[completed]);
+                                                printf("\n");
+                                                
+                                                avg_TAT=avg_TAT+TAT[completed];
+                                                avg_WT=avg_WT+WT[completed];
+                                                completed++;
+                                            }
+                                            
+                                            avg_TAT=avg_TAT/n;
+                                            avg_WT=avg_WT/n;
+                                            
+                                            printf("\nAverage Turnaround time : %f\n",avg_TAT);
+                                            printf("\nAverage waiting time : %f\n",avg_WT);
+                                            
+                                            return 0;
+                                        }
+
+                                        [1:55 pm, 25/09/2021] Lolan: #include<stdio.h>
+                                            #include<unistd.h>
+                                            int main()
+                                            {
+                                                int i,n,f;
+                                                printf("Enter the limit:");
+                                                scanf("%d",&n);
+                                                f=fork();
+                                                if(f>0)
+                                                {
+                                                    wait();
+                                                    printf("\nParent process\n");
+                                                    for(i=1;i<=n;i++)
+                                                    {
+                                                        if(i%2!=0)
+                                                        {
+                                                            printf("%d\t",i);
+                                                        }
+                                                    }
+                                                    printf("\nMy process id=%d",getpid());
+                                                    printf("\nMy child process id=%d",f);
+                                                }
+                                                else
+                                                {
+                                                    printf("\nChild process\n");
+                                                    for(i=1;i<=n;i++)
+                                                    {
+                                                        if(i%2==0)
+                                                        {
+                                                            printf("%d\t",i);
+                                                        }
+                                                    }
+                                                    printf("\nMy process id=%d",getpid());
+                                                    printf("\nMy parent process id=%d",getppid());
+                                                }
+                                                return 0;
+                                            }
+                                            [1:55 pm, 25/09/2021] Lolan: #include<stdio.h>
+                                            #include<pthread.h>
+                                            void * add(void * arg)
+                                            {
+                                                int * arr;
+                                                arr=arg;
+                                                int n1,n2,s;
+                                                n1=arr[0];
+                                                n2=arr[1];
+                                                s=n1+n2;
+                                                printf("Sum=%d+%d=%d\n",n1,n2,s);
+                                            }
+                                            int main()
+                                            {
+                                                int arr_1[2],arr_2[2];
+                                                pthread_t t1,t2;
+                                                printf("Enter the first number of t1\n");
+                                                scanf("%d",&arr_1[0]);
+                                                printf("Enter the second number of t1\n");
+                                                scanf("%d",&arr_1[1]);
+                                                printf("Enter the first number of t2\n");
+                                                scanf("%d",&arr_2[0]);
+                                                printf("Enter the second number of t2\n");
+                                                scanf("%d",&arr_2[1]);
+                                                pthread_create(&t1,NULL,add,arr_1);
+                                                pthread_create(&t2,NULL,add,arr_2);
+                                                pthread_exit(NULL);
+                                            }
+    </p>
+</body>
+</html>
